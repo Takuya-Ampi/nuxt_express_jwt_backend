@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const port = 5000
 const bodyParser = require("body-parser")
+const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const saltRounds = 10
@@ -15,6 +16,7 @@ const db = new sqlite3.Database('./database/database.sqlite3', (err) => {
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
+app.use(cors())
 app.get('/', (request, response) => response.send('Hello World!!'))
 app.get("/api/users", (req, res, next) => {
   const sql = "select * from users"
@@ -44,6 +46,8 @@ app.post('/api/auth/register', (req, res) => {
   })
 })
 app.post('/api/auth/login',(req,res) => {
+  console.log('req.body')
+  console.log(req.body)
   const sql = 'select * from users where email = ?'
   const params = [req.body.email]
   db.get(sql, params, (err, user) => {
@@ -53,6 +57,8 @@ app.post('/api/auth/login',(req,res) => {
     if(!user){
       return res.json({"message": "email not found"})
     }
+    console.log('user')
+    console.log(user)
     bcrypt.compare(req.body.password, user.password, (err,result) => {
       if (err) {
         return res.status(400).json({"error":err.message});
@@ -60,6 +66,8 @@ app.post('/api/auth/login',(req,res) => {
       if (!result) {
         return res.json({"message" : "password is not correct"})
       }
+      console.log('result')
+      console.log(result)
       // return res.json({"message" : "password is correct"})
       const payload = {
         id: user.id,
@@ -68,6 +76,8 @@ app.post('/api/auth/login',(req,res) => {
       }
       // 第一引数にpayload、第二引数にシークレットキー(任意)を渡す
       const token = jwt.sign(payload,'secret')
+      console.log('token')
+      console.log(token)
       return res.json({token})
     })
   })
